@@ -33,6 +33,12 @@ function log(message)
 	ac.log("[RARE] " .. message)
 end
 
+--- Log error messages
+--- @param message string
+function error(message)
+	ac.error("[RARE] " .. message)
+end
+
 function table.containsValue(tbl, x)
 	local found = false
 	for _, v in pairs(tbl) do

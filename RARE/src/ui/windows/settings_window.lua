@@ -6,32 +6,44 @@ local notifications = require("src/ui/windows/notification_window")
 local injected = physics.allowed()
 
 local presetNames = {
-	"FORMULA",
+	"FORMULA 1",
+	"FORMULA 2",
 	"GT",
 }
 
 local presets = {
-	["FORMULA"] = {
+	["FORMULA 1"] = {
 		DRS_RULES = 1,
-		DRS_ACTIVATION_LAP = 3,
+		DRS_ACTIVATION_LAP = 2,
 		DRS_GAP_DELTA = 1000,
 		DRS_WET_DISABLE = 1,
-		PIRELLI_LIMITS = 1,
-		VSC_RULES = 0,
-		VSC_INIT_TIME = 300,
-		VSC_DEPLOY_TIME = 300,
 		RACE_REFUELING = 0,
+		LIMIT_TYRE_COMPOUNDS = 1,
+		LIMIT_TYRE_START_PRESSURE = 1,
+		LIMIT_EOS_CAMBER = 1,
+		LIMIT_STATIC_CAMBER = 0,
+	},
+	["FORMULA 2"] = {
+		DRS_RULES = 1,
+		DRS_ACTIVATION_LAP = 2,
+		DRS_GAP_DELTA = 1000,
+		DRS_WET_DISABLE = 1,
+		RACE_REFUELING = 0,
+		LIMIT_TYRE_COMPOUNDS = 1,
+		LIMIT_TYRE_START_PRESSURE = 1,
+		LIMIT_EOS_CAMBER = 0,
+		LIMIT_STATIC_CAMBER = 1,
 	},
 	["GT"] = {
-		PIRELLI_LIMITS = 0,
-		VSC_RULES = 0,
-		VSC_INIT_TIME = 300,
-		VSC_DEPLOY_TIME = 300,
-		RACE_REFUELING = 1,
 		DRS_RULES = 0,
 		DRS_ACTIVATION_LAP = 0,
 		DRS_GAP_DELTA = 0,
 		DRS_WET_DISABLE = 0,
+		RACE_REFUELING = 1,
+		LIMIT_TYRE_COMPOUNDS = 0,
+		LIMIT_TYRE_START_PRESSURE = 0,
+		LIMIT_EOS_CAMBER = 0,
+		LIMIT_STATIC_CAMBER = 0,
 	},
 }
 
@@ -48,24 +60,11 @@ function table.match(a, b)
 	return match
 end
 
-local setPreset = {
-	["FORMULA"] = function()
-		RARE_CONFIG:set("RULES", "DRS_RULES", 1, false)
-		RARE_CONFIG:set("RULES", "DRS_ACTIVATION_LAP", 3, false)
-		RARE_CONFIG:set("RULES", "DRS_GAP_DELTA", 1000, false)
-		RARE_CONFIG:set("RULES", "DRS_WET_DISABLE", 1, false)
-		RARE_CONFIG:set("RULES", "RACE_REFUELING", 0, false)
-		RARE_CONFIG:set("RULES", "PIRELLI_LIMITS", 1, false)
-	end,
-	["GT"] = function()
-		RARE_CONFIG:set("RULES", "DRS_RULES", 0, false)
-		RARE_CONFIG:set("RULES", "DRS_ACTIVATION_LAP", 0, false)
-		RARE_CONFIG:set("RULES", "DRS_GAP_DELTA", 0, false)
-		RARE_CONFIG:set("RULES", "DRS_WET_DISABLE", 0, false)
-		RARE_CONFIG:set("RULES", "RACE_REFUELING", 1, false)
-		RARE_CONFIG:set("RULES", "PIRELLI_LIMITS", 0, false)
-	end,
-}
+local function setRareConfigPreset(preset)
+	for k, v in pairs(presets[preset]) do
+		RARE_CONFIG:set("RULES", k, v, false)
+	end
+end
 
 local selectedPreset = "CUSTOM"
 
@@ -80,7 +79,7 @@ local function rulesTab()
 			end
 		end
 
-		ui.header("RACE SERIES")
+		ui.header("RACE SERIES PRESETS")
 		ui.setNextItemWidth(ui.windowWidth() - 75)
 		local changed = false
 		ui.combo("##presetNames", selectedPreset, ui.ComboFlags.None, function()
@@ -92,12 +91,12 @@ local function rulesTab()
 		end)
 
 		if changed then
-			setPreset[selectedPreset]()
+			setRareConfigPreset(selectedPreset)
 		end
 
 		ui.newLine(1)
 
-		ui.header("DRS")
+		ui.header("RACING RULES")
 		controls.slider(
 			RARE_CONFIG,
 			"RULES",
@@ -143,8 +142,6 @@ local function rulesTab()
 				end
 			)
 
-			ui.newLine(1)
-
 			controls.slider(
 				RARE_CONFIG,
 				"RULES",
@@ -160,39 +157,85 @@ local function rulesTab()
 					return math.round(v, 0)
 				end
 			)
+			ui.newLine(1)
+
+			controls.slider(
+				RARE_CONFIG,
+				"RULES",
+				"RACE_REFUELING",
+				0,
+				1,
+				1,
+				true,
+				RARE_CONFIG.data.RULES.RACE_REFUELING == 1 and "Race Refueling: ENABLED" or "Race Refueling: DISABLED",
+				"Enable or disable refueling during a race",
+				function(v)
+					return math.round(v, 0)
+				end
+			)
 		end
 		ui.newLine(1)
 
-		ui.header("RESTRICTIONS")
+		ui.header("SETUP LIMITS")
+
 		controls.slider(
 			RARE_CONFIG,
 			"RULES",
-			"RACE_REFUELING",
+			"LIMIT_TYRE_COMPOUNDS",
 			0,
 			1,
 			1,
 			true,
-			RARE_CONFIG.data.RULES.RACE_REFUELING == 1 and "Race Refueling: ENABLED" or "Race Refueling: DISABLED",
-			"Enable or disable refueling during a race",
-			function(v)
-				return math.round(v, 0)
-			end
-		)
-		controls.slider(
-			RARE_CONFIG,
-			"RULES",
-			"PIRELLI_LIMITS",
-			0,
-			1,
-			1,
-			true,
-			RARE_CONFIG.data.RULES.PIRELLI_LIMITS == 1 and "Enforce Pirelli Limits: ENABLED"
-				or "Enforce Pirelli Limits: DISABLED",
+			RARE_CONFIG.data.RULES.LIMIT_TYRE_COMPOUNDS == 1 and "Tyre Compounds: RESTRICTED" or "Tyre Compounds: FREE",
 			"Enable or disable restricting compound choice, starting pressures, and EOS camber limits\nRequires configration in the 'config' tab in order to work",
 			function(v)
 				return math.round(v, 0)
 			end
 		)
+		controls.slider(
+			RARE_CONFIG,
+			"RULES",
+			"LIMIT_TYRE_START_PRESSURE",
+			0,
+			1,
+			1,
+			true,
+			RARE_CONFIG.data.RULES.LIMIT_TYRE_START_PRESSURE == 1 and "Tyre Starting Pressures: RESTRICTED"
+				or "Tyre Starting Pressures: FREE",
+			"Enable or disable restricting compound choice, starting pressures, and EOS camber limits\nRequires configration in the 'config' tab in order to work",
+			function(v)
+				return math.round(v, 0)
+			end
+		)
+		controls.slider(
+			RARE_CONFIG,
+			"RULES",
+			"LIMIT_EOS_CAMBER",
+			0,
+			1,
+			1,
+			true,
+			RARE_CONFIG.data.RULES.LIMIT_EOS_CAMBER == 1 and "EOS Camber: RESTRICTED" or "EOS Camber: FREE",
+			"Enable or disable restricting compound choice, starting pressures, and EOS camber limits\nRequires configration in the 'config' tab in order to work",
+			function(v)
+				return math.round(v, 0)
+			end
+		)
+		controls.slider(
+			RARE_CONFIG,
+			"RULES",
+			"LIMIT_STATIC_CAMBER",
+			0,
+			1,
+			1,
+			true,
+			RARE_CONFIG.data.RULES.LIMIT_STATIC_CAMBER == 1 and "Static Camber: RESTRICTED" or "Static Camber: FREE",
+			"Enable or disable restricting compound choice, starting pressures, and EOS camber limits\nRequires configration in the 'config' tab in order to work",
+			function(v)
+				return math.round(v, 0)
+			end
+		)
+
 		ui.newLine(1)
 	end)
 end
@@ -279,9 +322,11 @@ local trackCompoundKeys = {
 	"HARD_COMPOUND",
 }
 
-local trackEOSCamberKeys = {
+local trackCamberKeys = {
 	"EOS_CAMBER_LIMIT_FRONT",
-	"EOS_CAMBER_LIMIT_REAR",
+	"EOS_CAMBER_LIMIT_FRONT",
+	"STATIC_CAMBER_LIMIT_FRONT",
+	"STATIC_CAMBER_LIMIT_REAR",
 }
 
 local trackMinStartingPressureKeys = {
@@ -326,7 +371,7 @@ local compoundTexturesKeys = {
 }
 
 local function compoundsTab()
-	ui.tabItem("PIRELLI LIMITS", ui.TabItemFlags.None, function()
+	ui.tabItem("SETUP LIMITS", ui.TabItemFlags.None, function()
 		ui.childWindow("compoundTabWindow", vec2(451, 491), function()
 			if sim.raceSessionType == 3 then
 				if not sim.isInMainMenu or sim.isSessionStarted then
@@ -450,12 +495,12 @@ local function compoundsTab()
 			ui.popFont()
 			ui.newLine(1)
 
-			ui.header("CURRENT TRACK EOS CAMBER LIMITS")
+			ui.header("CURRENT TRACK CAMBER LIMITS")
 			ui.pushFont(ui.Font.Small)
 			ui.newLine(1)
 
-			for i = 1, #trackEOSCamberKeys do
-				local key = trackEOSCamberKeys[i]
+			for i = 1, #trackCamberKeys do
+				local key = trackCamberKeys[i]
 				local prefix = ""
 				ui.text(prefix .. key:gsub("_", " ") .. ":")
 				ui.sameLine(190)
@@ -474,7 +519,7 @@ local function compoundsTab()
 
 				local value, changed = ui.slider(
 					"##track" .. key .. "label",
-					selectedCarConfigINI:get(ac.getTrackID(), trackEOSCamberKeys[i], defaultEOSCamberLimit),
+					selectedCarConfigINI:get(ac.getTrackID(), trackCamberKeys[i], defaultEOSCamberLimit),
 					-5,
 					0,
 					"%.2f °",
@@ -484,7 +529,7 @@ local function compoundsTab()
 				if changed then
 					selectedCarConfigINI:setAndSave(
 						ac.getTrackID(),
-						trackEOSCamberKeys[i],
+						trackCamberKeys[i],
 						math.floor(value / 0.05 + 0.05) * 0.05,
 						false
 					)

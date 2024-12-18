@@ -61,6 +61,9 @@ function Driver:initialize(carIndex)
 	self.eosCamberLimitFront = -5
 	self.eosCamberLimitRear = -5
 
+	self.camberLimitFront = -50
+	self.camberLimitRear = -50
+
 	self.tyreSlicksMinimumStartingPressureFront = 22
 	self.tyreSlicksMinimumStartingPressureRear = 20
 
@@ -214,6 +217,9 @@ function Driver:updatePirelliLimitsConfig()
 
 	self.eosCamberLimitFront = compoundsINI:get(trackID, "EOS_CAMBER_LIMIT_FRONT", -3.25)
 	self.eosCamberLimitRear = compoundsINI:get(trackID, "EOS_CAMBER_LIMIT_REAR", -2)
+
+	self.camberLimitFront = compoundsINI:get(trackID, "STATIC_CAMBER_LIMIT_FRONT", -2)
+	self.camberLimitRear = compoundsINI:get(trackID, "STATIC_CAMBER_LIMIT_REAR", -2)
 
 	self.tyreSlicksMinimumStartingPressureFront = compoundsINI:get(trackID, "SLICKS_MIN_HOT_START_PSI_FRONT", 22)
 	self.tyreSlicksMinimumStartingPressureRear = compoundsINI:get(trackID, "SLICKS_MIN_HOT_START_PSI_REAR", 20)

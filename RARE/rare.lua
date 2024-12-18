@@ -1,3 +1,9 @@
+local sim = ac.getSim()
+
+if sim.isOnlineRace then
+	return
+end
+
 require("app/version")
 require("src/helpers/ac_ext")
 require("src/init")
@@ -12,7 +18,6 @@ INITIALIZED = false
 RARE_CONFIG = nil
 RESTARTED = false
 
-local sim = ac.getSim()
 local rc = nil
 local sfx = nil
 local delay = 0
@@ -22,32 +27,23 @@ ac.onSessionStart(function(sessionIndex, restarted)
 end)
 
 function script.update(dt)
-	if sim.sessionsCount > 1 and ac.getPatchVersionCode() == 2501 then
-		return
-	end
-
-	sim = ac.getSim()
-
-	local error = ac.getLastError()
-	if error then
+	if ac.getLastError() then
 		ui.toast(ui.Icons.Warning, "[RARE] AN ERROR HAS OCCURED")
-		log(error)
+		log(ac.getLastError())
 	end
 
-	if not sim.isOnlineRace then
-		if sim.isInMainMenu then
-			ac.setWindowOpen("settings_setup", true)
-		end
+	if sim.isInMainMenu then
+		ac.setWindowOpen("settings_setup", true)
+	end
 
-		if not ac.isWindowOpen("rare") then
-			return
-		elseif not physics.allowed() then
-			-- ui.toast(
-			-- 	ui.Icons.Warning,
-			-- 	"[RARE] INJECT THE APP! Inject the app by clicking the 'OFF' button in the RARE window while in the setup menu."
-			-- )
-			return
-		end
+	if not ac.isWindowOpen("rare") then
+		return
+	elseif not physics.allowed() then
+		ui.toast(
+			ui.Icons.Warning,
+			"[RARE] INJECT THE APP! Inject the app by clicking the 'OFF' button in the RARE window while in the setup menu."
+		)
+		return
 	end
 
 	if INITIALIZED then
@@ -70,8 +66,6 @@ function script.update(dt)
 end
 
 function script.windowMain(dt)
-	-- JUST TO KEEP THE SCRIPT ALIVE
-
 	if INITIALIZED then
 		ui.transparentWindow(
 			"notifications",
@@ -85,16 +79,22 @@ function script.windowMain(dt)
 end
 
 function script.windowDebug(dt)
-	local rareEnabled = ac.isWindowOpen("rare")
-	local windowName = SCRIPT_SHORT_NAME .. " Debug"
-	local scriptVersion = SCRIPT_VERSION .. " (" .. SCRIPT_VERSION_CODE .. ")"
-	local windowTitle = windowName .. " | " .. scriptVersion .. " | " .. (rareEnabled and "ENABLED" or "DISABLED")
-	local error = ac.getLastError()
-	ac.setWindowTitle("debug", windowTitle)
-
-	if INITIALIZED and not sim.isInMainMenu and rc ~= nil then
-		debug_window(sim, rc, error)
+	if not INITIALIZED or rc == nil then
+		return
 	end
+
+	ac.setWindowTitle(
+		"debug",
+		string.format(
+			"%s Debug | %s (%s) | %s",
+			SCRIPT_SHORT_NAME,
+			SCRIPT_VERSION,
+			SCRIPT_VERSION_CODE,
+			(ac.isWindowOpen("rare") and "ENABLED" or "DISABLED")
+		)
+	)
+
+	debug_window(sim, rc, ac.getLastError())
 end
 
 function script.windowSettings()
@@ -102,8 +102,10 @@ function script.windowSettings()
 		return
 	end
 
-	local scriptVersion = SCRIPT_VERSION .. " (" .. SCRIPT_VERSION_CODE .. ")"
-	ac.setWindowTitle("settings", SCRIPT_NAME .. " Settings | " .. scriptVersion)
+	ac.setWindowTitle(
+		"settings",
+		string.format("%s Settings | %s (%s)", SCRIPT_NAME, SCRIPT_VERSION, SCRIPT_VERSION_CODE)
+	)
 
 	settingsMenu()
 end
