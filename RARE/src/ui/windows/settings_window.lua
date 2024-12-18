@@ -158,22 +158,22 @@ local function rulesTab()
 				end
 			)
 			ui.newLine(1)
-
-			controls.slider(
-				RARE_CONFIG,
-				"RULES",
-				"RACE_REFUELING",
-				0,
-				1,
-				1,
-				true,
-				RARE_CONFIG.data.RULES.RACE_REFUELING == 1 and "Race Refueling: ENABLED" or "Race Refueling: DISABLED",
-				"Enable or disable refueling during a race",
-				function(v)
-					return math.round(v, 0)
-				end
-			)
 		end
+		controls.slider(
+			RARE_CONFIG,
+			"RULES",
+			"RACE_REFUELING",
+			0,
+			1,
+			1,
+			true,
+			RARE_CONFIG.data.RULES.RACE_REFUELING == 1 and "Race Refueling: ENABLED" or "Race Refueling: DISABLED",
+			"Enable or disable refueling during a race",
+			function(v)
+				return math.round(v, 0)
+			end
+		)
+
 		ui.newLine(1)
 
 		ui.header("SETUP LIMITS")
