@@ -404,12 +404,9 @@ local function compoundsTab()
 			-- ui.newLine(1)
 
 			if ui.textHyperlink("FIA Documents", rgbm.colors.red) then
-				os.openURL(
-					"https://www.fia.com/documents/championships/fia-formula-one-world-championship-14/season/season-2023-2042"
-				)
+				os.openURL("https://www.fia.com/documents/championships/fia-formula-one-world-championship-14/season")
 				-- os.openURL("https://www.google.com/search?q=pirelli+press+" .. ac.getTrackName())
 			end
-			ui.text("Look under " .. ac.getTrackName() .. " and find the Pirelli Preview pdf")
 
 			ui.newLine(1)
 
