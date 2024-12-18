@@ -729,6 +729,36 @@ local function aiTab()
 		)
 		ui.newLine(1)
 
+		controls.slider(
+			RARE_CONFIG,
+			"AI",
+			"INTERS_WET_LEVEL",
+			0,
+			10,
+			1,
+			false,
+			"Rain Level for Intermediates:%.2f %%",
+			"Force AI to pit for new tyres when their average tyre life is below AI TYRE LIFE",
+			function(v)
+				return math.round(v, 2)
+			end
+		)
+		controls.slider(
+			RARE_CONFIG,
+			"AI",
+			"WETS_WET_LEVEL",
+			0,
+			10,
+			1,
+			false,
+			"Rain Level for Full Wets:%.2f %%",
+			"Force AI to pit for new tyres when their average tyre life is below AI TYRE LIFE",
+			function(v)
+				return math.round(v, 2)
+			end
+		)
+		ui.newLine(1)
+
 		local driver = DRIVERS[sim.focusedCar]
 
 		if RARE_CONFIG.data.AI.FORCE_PIT_TYRES == 1 then
